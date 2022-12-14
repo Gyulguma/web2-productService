@@ -20,4 +20,6 @@ public class ProductDto implements Serializable {
     private String tableOfContents;
     private Integer fixedPrice;
     private Integer price;
+    private Integer quantity;
+    private Integer comments;
 }

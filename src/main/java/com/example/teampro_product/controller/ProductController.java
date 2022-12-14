@@ -6,11 +6,8 @@ import com.example.teampro_product.service.ProductService;
 import com.example.teampro_product.util.CommonResponse;
 import com.example.teampro_product.util.ServerException;
 import com.example.teampro_product.util.ServerResponseStatus;
-import com.example.teampro_product.vo.GetProductRes;
-import com.example.teampro_product.vo.PostProductReq;
-import com.example.teampro_product.vo.PostProductRes;
+import com.example.teampro_product.vo.*;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.catalina.Server;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/product-service/products")
+@RequestMapping(value = "/product-service/products")
 public class ProductController {
 
     private Environment env;
@@ -34,12 +31,12 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @GetMapping("/health-check")
+    @GetMapping(value = "/health-check")
     public String status(HttpServletRequest request){
         return String.format("It's Working in Product Service on Port %s", request.getServerPort());
     }
 
-    @GetMapping("/getallproduct")
+    @GetMapping(value = "/getallproduct")
     public ResponseEntity<CommonResponse<List<GetProductRes>>> getAllProduct(){
         try {
             Iterable<ProductEntity> orderList = productService.getAllProducts();
@@ -54,7 +51,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/getproduct")
+    @GetMapping(value = "/getproduct")
     public ResponseEntity<CommonResponse<GetProductRes>> getProduct(@RequestParam("name") String name){
         try {
             ProductDto product = productService.getProduct(name);
@@ -82,7 +79,7 @@ public class ProductController {
     }
 
     @PostMapping(value = "/modifyInfo/{isbn}")
-    public ResponseEntity<CommonResponse<PostProductRes>> addProduct(@PathVariable("isbn") String isbn, @RequestBody PostProductReq productDetails){
+    public ResponseEntity<CommonResponse<PostProductRes>> modifyInfo(@PathVariable("isbn") String isbn, @RequestBody PostProductReq productDetails){
         try {
             ModelMapper modelMapper = new ModelMapper();
             modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
@@ -107,5 +104,41 @@ public class ProductController {
         } catch (ServerException e){
             return ResponseEntity.status(HttpStatus.CREATED).body(new CommonResponse<>(e.getStatus()));
         }
+    }
+
+    @GetMapping(value = "/getCommentQuantity/{isbn}")
+    public Integer getCommentQuantity(@PathVariable("isbn") String isbn){
+        Integer result = productService.getproductComments(isbn);
+        return result;
+    }
+
+    @GetMapping(value = "/getQuantity/{isbn}")
+    public ResponseEntity<ResponseQuantity> getQuantity(@PathVariable("isbn") String isbn){
+        Integer quantity = productService.getQuantity(isbn);
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+
+        ResponseQuantity result = new ResponseQuantity();
+        result.setQuantity(quantity);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @PostMapping(value = "/updateQuantity")
+    public ResponseEntity<ResponseUpdateQuantity> updateQuantity(@RequestBody RequestUpdateQuantity quantity){
+        boolean isSuccess = productService.updateQuantity(quantity);
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+
+        ResponseUpdateQuantity result = new ResponseUpdateQuantity();
+        result.setSuccess(isSuccess);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+
+    @PostMapping(value = "/updateComments/{isbn}")
+    public ResponseEntity<ResponseUpdateComments> updateComments(@PathVariable("isbn") String isbn){
+        boolean isSuccess = productService.updateComments(isbn);
+        ResponseUpdateComments result = new ResponseUpdateComments();
+        result.setSuccess(isSuccess);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 }

@@ -55,6 +55,12 @@ public class ProductEntity implements Serializable {
     @Column(nullable = false, length = 7)
     private Integer price;
 
+    @Column(nullable = false, length = 3)
+    private Integer quantity;
+
+    @Column(nullable = false, length = 5)
+    private Integer comments;
+
     @Column(nullable = false, updatable = false, insertable = false)
     @ColumnDefault(value = "CURRENT_TIMESTAMP")
     private Date createdAt;

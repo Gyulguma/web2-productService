@@ -21,6 +21,8 @@ public class GetProductRes {
     private String tableOfContents;
     private Integer fixedPrice;
     private Integer price;
+    private Integer quantity;
+    private Integer comments;
     private Date createdAt;
     private Date updatedAt;
 }

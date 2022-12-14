@@ -5,6 +5,7 @@ import com.example.teampro_product.jpa.ProductEntity;
 import com.example.teampro_product.jpa.ProductRepository;
 import com.example.teampro_product.util.ServerException;
 import com.example.teampro_product.util.ServerResponseStatus;
+import com.example.teampro_product.vo.RequestUpdateQuantity;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.Server;
 import org.modelmapper.ModelMapper;
@@ -48,7 +49,7 @@ public class ProductServiceImpl implements ProductService{
         try{
             ModelMapper modelMapper = new ModelMapper();
             modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-
+            productDetails.setComments(0);
             ProductEntity productEntity = modelMapper.map(productDetails, ProductEntity.class);
 
             this.productRepository.save(productEntity);
@@ -83,6 +84,7 @@ public class ProductServiceImpl implements ProductService{
             originalDetails.setTableOfContents(fixedDetails.getTableOfContents());
             originalDetails.setFixedPrice(fixedDetails.getFixedPrice());
             originalDetails.setPrice(fixedDetails.getPrice());
+            originalDetails.setQuantity(fixedDetails.getQuantity());
             this.productRepository.save(originalDetails);
             ProductDto resultValue = modelMapper.map(originalDetails, ProductDto.class);
             return resultValue;
@@ -104,6 +106,47 @@ public class ProductServiceImpl implements ProductService{
         }catch (Exception e){
             throw new ServerException(ServerResponseStatus.DATABASE_ERROR);
         }
+    }
+
+    @Override
+    public Integer getproductComments(String isbn) {
+        if(!(this.productRepository.existsByIsbn(isbn))) return 0;
+
+        ProductEntity productEntity = this.productRepository.findByIsbn(isbn);
+        Integer result = productEntity.getComments();
+        return result;
+    }
+    @Override
+    public Integer getQuantity(String isbn) {
+        if(!(this.productRepository.existsByIsbn(isbn))) return 0;
+
+        ProductEntity productEntity = this.productRepository.findByIsbn(isbn);
+        Integer result = productEntity.getQuantity();
+        return result;
+    }
+    @Override
+    public boolean updateQuantity(RequestUpdateQuantity quantity) {
+        if(!(this.productRepository.existsByIsbn(quantity.getIsbn()))) return false;
+
+        ProductEntity productEntity = this.productRepository.findByIsbn(quantity.getIsbn());
+        Integer updateQuantity = productEntity.getQuantity()-quantity.getQuantity();
+        productEntity.setQuantity(updateQuantity);
+        this.productRepository.save(productEntity);
+
+        ProductEntity updatedProduct = this.productRepository.findByIsbn(quantity.getIsbn());
+        return updatedProduct.getQuantity() == updateQuantity;
+    }
+    @Override
+    public boolean updateComments(String isbn) {
+        if(!(this.productRepository.existsByIsbn(isbn))) return false;
+
+        ProductEntity productEntity = this.productRepository.findByIsbn(isbn);
+        Integer updateComments = productEntity.getComments()+1;
+        productEntity.setComments(updateComments);
+        this.productRepository.save(productEntity);
+
+        ProductEntity updatedProduct = this.productRepository.findByIsbn(isbn);
+        return updatedProduct.getComments() == updateComments;
     }
 
 }
